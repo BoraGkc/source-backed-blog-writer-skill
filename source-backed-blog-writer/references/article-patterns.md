@@ -28,6 +28,8 @@ Treat commercial investigation as a decision task even when the query looks info
 
 ## Commercial patterns
 
+For Alternatives, Best-Of, and Comparison articles, include a visible `Methodology` section. State the inclusion criteria, which products were tested versus desk-researched, the consistent evaluation criteria, research and pricing dates, material relationships, limitations, and unknowns. Never imply hands-on testing from documentation review.
+
 ### Alternatives
 
 **Reader outcome:** identify credible replacements for a named product.

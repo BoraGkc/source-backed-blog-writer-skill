@@ -9,13 +9,17 @@ An agent skill for researching, drafting, refreshing, and auditing complete SEO 
 - Selects an editorial or commercial article pattern that matches the reader's job.
 - Produces a sourced 1,500–2,000-word article with metadata and image recommendations.
 - Stops when proprietary evidence is missing instead of fabricating experience, quotes, data, or results.
-- Refreshes existing articles selectively and audits without rewriting unless asked.
+- Tracks material claims by source type and verification date.
+- Validates article structure, counts, metadata, and unresolved placeholders with a dependency-free script.
+- Refreshes existing articles selectively, reports what changed, and audits without rewriting unless asked.
 
 ## Required inputs
 
 Provide the topic and primary keyword, publishing domain, audience and market, language and brand voice, desired CTA, relevant product details, and at least one verifiable proprietary fact such as firsthand experience, an interview quote, internal data, or a test result.
 
 The skill can infer low-risk details from the brief or website. It asks when a missing answer would block accurate research or force fabrication.
+
+For close voice matching, also provide the author's name, real credentials, desired first-person or institutional perspective, and one to three representative writing samples. Without supported firsthand evidence, the skill will not invent personal experience.
 
 ## Install
 
@@ -56,6 +60,8 @@ the voice is practical, and our proprietary evidence is a 12-home field test.
 ```text
 Use $source-backed-blog-writer to plan a fair comparison of Product A and
 Product B. Do not draft until you have checked for an existing competing page.
+Use our founder's supplied bio and writing samples for the voice, and include
+a methodology section that distinguishes tested from desk-researched claims.
 ```
 
 ```text
@@ -67,6 +73,16 @@ Preserve useful original material and change only what is stale or unsupported.
 Use $source-backed-blog-writer to audit this draft. Report issues by severity
 and point to exact sections without rewriting it.
 ```
+
+## Validate a draft
+
+The skill runs its validator automatically when file and shell access are available. You can also run it directly:
+
+```bash
+python3 ~/.agents/skills/source-backed-blog-writer/scripts/validate_article.py article.md
+```
+
+The validator uses only the Python standard library. It checks mechanical requirements and unresolved placeholders; claim support still requires source review.
 
 ## Limitations
 
@@ -85,7 +101,8 @@ and point to exact sections without rewriting it.
 └── source-backed-blog-writer/
     ├── SKILL.md
     ├── agents/openai.yaml
-    └── references/article-patterns.md
+    ├── references/article-patterns.md
+    └── scripts/validate_article.py
 ```
 
 Repository documentation stays outside the installable skill folder.

@@ -1,6 +1,6 @@
 ---
 name: source-backed-blog-writer
-description: Research, plan, write, refresh, and audit complete source-backed SEO blog posts and articles. Use for keyword-led editorial content, commercial product content, how-to guides, list posts, definition posts, newsjacking, pillar pages, alternatives, best-of roundups, product comparisons, content briefs, SEO rewrites, and pre-publish reviews. Produces a sourced 1,500-2,000-word article with metadata, keywords, internal-link opportunities, FAQs, image recommendations, competitor-gap coverage, and a validation checklist.
+description: Research, plan, write, refresh, and audit complete source-backed SEO blog posts and articles. Use for keyword-led editorial content, commercial product content, how-to guides, list posts, definition posts, newsjacking, pillar pages, alternatives, best-of roundups, product comparisons, content briefs, SEO rewrites, and pre-publish reviews. Produces a sourced 1,500-2,000-word article with metadata, keywords, internal-link opportunities, FAQs, image recommendations, competitor-gap coverage, claim provenance, and deterministic validation.
 ---
 
 # Source-Backed Blog Writer
@@ -17,10 +17,14 @@ Identify:
 - brand voice and desired CTA
 - product/company details when commercially relevant
 - proprietary evidence: firsthand experience, interview quote, internal data, test result, event observation, or another verifiable original fact
+- author identity and real credentials when the article uses a byline or first-person voice
+- one to three representative writing samples when close voice matching matters
 
 Infer low-risk details from the brief or website. Ask only when a missing answer blocks correct research or would force fabrication.
 
 Never invent search volume, rankings, quotes, product experience, internal data, URLs, pricing, review sentiment, or proprietary facts. If proprietary evidence is missing, stop before drafting and request one concrete input. If the user explicitly asks to proceed, insert a visible `[PROPRIETARY INPUT NEEDED: ...]` placeholder and exclude it from factual claims.
+
+When writing samples are supplied, derive a short internal voice profile covering tone, sentence and paragraph tendencies, preferred vocabulary, prohibited language, and first-person versus institutional perspective. Treat the samples as style evidence, not permission to copy wording. Use neutral professional language when no usable voice evidence exists. Never write firsthand statements in the author's voice unless the user supplied the underlying experience.
 
 ## Source priority
 
@@ -61,10 +65,13 @@ Record internally:
 - at least one defensible content gap
 - selected article pattern and rationale
 - proprietary evidence to include and its provenance
+- author and voice profile when applicable
 - primary CTA and internal-link targets
-- claims that need citations
+- a claim ledger with each material claim, classification, source, and verification date
 
 A competitor omission is not proprietary evidence by itself. Original synthesis may be a differentiator, but label it as analysis rather than firsthand data.
+
+Use the columns `Claim | Classification | Source | Verified`. Classify entries as `Proprietary evidence`, `User-provided`, `Primary source`, `Secondary source`, `Calculated`, `Analysis`, or `Unverified`. Keep the ledger internal unless the user requests an audit trail or unresolved material claims remain. Unverified material claims block a publish-ready label.
 
 ### 3. Outline for information gain
 
@@ -86,6 +93,7 @@ Meet all of these requirements:
 - Cover at least one meaningful angle absent from the reviewed competitors.
 - Distinguish benefits from features in commercial content.
 - Treat competitors fairly; state where another option is stronger and never manufacture drawbacks.
+- For Alternatives, Best-Of, and Comparison articles, publish a concise methodology section covering inclusion criteria, tested versus desk-researched products, consistent evaluation criteria, research and pricing dates, material relationships, limitations, and unknowns.
 - Keep the conclusion brief, reinforce the decision or takeaway, and introduce no new facts.
 - Use internal links with descriptive anchor text and verified URLs. If none are discoverable, add `[INTERNAL LINK NEEDED: suggested anchor -> target page type]` rather than inventing a URL.
 - Keep external hyperlinks out of the body. Cite sources with readable names or note markers, then put non-competing source URLs in `References`. For competitor sources, list publisher, page title, and access date without a live URL.
@@ -95,12 +103,12 @@ SEO is subordinate to usefulness. The editorial word target is not a Google rank
 
 ### 5. Package the deliverable
 
-Use this order:
+Use H2 headings for package labels and exactly one H1 for the article title. Use this order:
 
 1. `Pattern Used`
 2. `Search Intent`
 3. `Primary Keyword`
-4. `Related Keywords` with at least 10 terms
+4. `Related Keywords` with at least 10 comma-separated terms or list items
 5. `Competitor Gap Covered`
 6. `Proprietary Evidence Used`
 7. `Slug` with at most five words and the primary keyword when natural
@@ -110,17 +118,25 @@ Use this order:
 11. `Key Points` with 3-6 bullets
 12. Article body with H2/H3 hierarchy
 13. Brief conclusion
-14. `FAQs` with 3-7 real long-tail questions and 1-3 sentence answers; do not reuse an existing heading target
-15. `Image Recommendations`: one cover plus at least three in-article images, each with placement, concept, descriptive filename, and useful alt text
+14. `FAQs` with 3-7 real long-tail questions formatted as H3 headings and followed by 1-3 sentence answers; do not reuse an existing heading target
+15. `Image Recommendations`: one list item for the cover plus at least three for in-article images, each with placement, concept, descriptive filename, and useful alt text
 16. `References`: link non-competing authoritative sources; list competitor sources without live URLs
 
 Do not add research-process commentary to the article unless requested. In the References section, include only sources actually used.
 
 ### 6. Validate before delivery
 
-Check mechanically where possible:
+When file and shell access are available, write the complete package to a temporary Markdown file and run:
 
-- when file and shell access are available, draft into a temporary Markdown file, mechanically count only the introduction-through-FAQs range, revise the file until it is 1,500-2,000 words, then deliver its content; otherwise use the conservative first-draft budget and label the count as estimated
+```bash
+python3 <skill-directory>/scripts/validate_article.py <draft.md>
+```
+
+Fix every failure and rerun until the command exits successfully. Use `--allow-placeholders` only when the user explicitly approved visible placeholders; report that the result is a draft, not publish-ready. If the script cannot run, apply the same checks manually and label the word count as estimated.
+
+Use `--allow-extended` only when the user explicitly required additional coverage up to 2,500 words.
+
+- article is 1,500-2,000 words from the H1 through FAQs
 - never report a count as verified when it was only estimated; exceed 2,000 words only for explicit required coverage and never exceed 2,500
 - article pattern name appears at the top
 - 10 or more useful keywords are listed
@@ -138,10 +154,23 @@ Check mechanically where possible:
 - external references are authoritative, used, and non-competitive
 - spelling, grammar, tone, and brand alignment pass
 
+The validator can detect structure, counts, lengths, and unresolved placeholders. It cannot prove that a claim is supported; verify factual support against the claim ledger.
+
 Revise once to remove repetition, unsupported claims, padding, keyword stuffing, generic AI phrasing, and any promise the evidence cannot support. Deliver the article, not the checklist, unless the user asks for an audit trail.
 
 ## Refresh and audit tasks
 
 For an existing article, preserve useful original material, rerun the duplicate/SERP/source checks, identify stale or unsupported claims, and revise only where the evidence or intent requires it. Apply the same final validation. Do not rewrite merely to make wording different.
+
+After a refresh, report:
+
+- intent or competitor changes
+- facts and sources updated
+- sections preserved, removed, or consolidated
+- remaining unsupported claims
+- recommended published-date or last-updated-date treatment
+- a suggested next review
+
+Recommend performance checkpoints only when analytics or Search Console access exists. Label unavailable metrics as unknown and never invent expected gains.
 
 For a requested audit, report findings by severity and point to exact sections. Do not rewrite unless asked.
