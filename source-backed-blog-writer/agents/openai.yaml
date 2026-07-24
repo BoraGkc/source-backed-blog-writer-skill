@@ -1,0 +1,4 @@
+interface:
+  display_name: "Source-Backed Blog Writer"
+  short_description: "Research and write source-backed SEO articles"
+  default_prompt: "Use $source-backed-blog-writer to research and draft a complete SEO article for my brief."
