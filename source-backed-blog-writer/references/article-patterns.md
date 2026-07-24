@@ -132,4 +132,4 @@ For Alternatives, Best-Of, and Comparison articles, include a visible `Methodolo
 - Keep evaluation criteria consistent across competing products.
 - Disclose material relationships and separate facts, firsthand evidence, and analysis.
 - Treat FAQs as reader service, not a promise of rich results.
-- Describe an image's useful information or function in its alt text; use empty alt text for purely decorative images.
+- Recommend only informative images and describe each image's useful information or function in its alt text. If the publishing system adds decorative images separately, give those empty alt text.

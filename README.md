@@ -86,7 +86,7 @@ The skill runs its validator automatically when file and shell access are availa
 python3 ~/.agents/skills/source-backed-blog-writer/scripts/validate_article.py article.md
 ```
 
-The validator uses only the Python standard library. It checks mechanical requirements, exactly one H1, heading keyword use, meta-description terms and CTA, image fields, numbered citation mapping, duplicate FAQs, and unresolved placeholders; claim support still requires source review.
+The validator uses only the Python standard library. It checks mechanical requirements, exactly one H1, publish-readiness format, conditional table-of-contents use, heading keyword use before the FAQs, meta-description terms and CTA, CMS excerpt rules, image fields, numbered citation mapping, duplicate FAQs, and unresolved placeholders. Claim support still requires source review.
 
 ## Limitations
 

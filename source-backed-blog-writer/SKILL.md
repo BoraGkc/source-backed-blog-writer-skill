@@ -23,7 +23,7 @@ Identify:
 
 Infer low-risk details from the brief or website. Ask only when a missing answer blocks correct research or would force fabrication.
 
-Never invent search volume, rankings, quotes, product experience, internal data, URLs, pricing, review sentiment, or proprietary facts. If proprietary evidence is missing, stop before drafting and request one concrete input. If the user explicitly asks to proceed, insert a visible `[PROPRIETARY INPUT NEEDED: ...]` placeholder and exclude it from factual claims.
+Never invent search volume, rankings, quotes, product experience, internal data, URLs, pricing, review sentiment, or proprietary facts. If proprietary evidence is missing, stop before drafting, report `Publish Readiness: Blocked — proprietary evidence required`, and request one concrete input. If the user explicitly asks to proceed, insert a visible `[PROPRIETARY INPUT NEEDED: ...]` placeholder, exclude it from factual claims, and label the result `Draft`.
 
 When writing samples are supplied, derive a short internal voice profile covering tone, sentence and paragraph tendencies, preferred vocabulary, prohibited language, and first-person versus institutional perspective. Treat the samples as style evidence, not permission to copy wording. Use neutral professional language when no usable voice evidence exists. Never write firsthand statements in the author's voice unless the user supplied the underlying experience.
 
@@ -36,7 +36,7 @@ Apply instructions in this order:
 3. Editorial patterns for informational How-To, List, What-Is, Newsjacking, Pillar, and Infographic articles
 4. General SEO guidance
 
-The required article range is 1,500-2,000 words, even when a source suggests another length. Treat 2,000 as the default absolute maximum; allow up to 2,500 only when the user explicitly requires additional coverage. Count the article from introduction through FAQs; exclude planning metadata, image recommendations, and references. Budget the first draft for 1,450-1,600 words: roughly 125-150 for the introduction and key points, 1,100-1,200 for the body, and 225-250 for the conclusion and FAQs. Revise upward or downward after counting.
+The required article range is 1,500-2,000 words, even when a source suggests another length. Treat 2,000 as the default absolute maximum; allow up to 2,500 only when the user explicitly requires additional coverage. Count the article from introduction through FAQs; exclude planning metadata, author bio, image recommendations, and references. Budget the first draft for 1,450-1,600 words: roughly 125-150 for the introduction and key points, 1,100-1,200 for the body, and 225-250 for the conclusion and FAQs. Revise upward or downward after counting.
 
 Before outlining, read [references/article-patterns.md](references/article-patterns.md) completely and select one pattern. State the selected pattern at the top of the delivered document.
 
@@ -103,12 +103,14 @@ Meet all of these requirements:
 - For Alternatives, Best-Of, and Comparison articles, publish a concise methodology section covering inclusion criteria, tested versus desk-researched products, consistent evaluation criteria, research and pricing dates, material relationships, limitations, and unknowns.
 - Keep the conclusion brief, reinforce the decision or takeaway, and introduce no new facts.
 - Use internal links with descriptive anchor text and verified URLs. If none are discoverable, add `[INTERNAL LINK NEEDED: suggested anchor -> target page type]` rather than inventing a URL.
-- Keep external hyperlinks out of the body. Mark each material factual claim with a numbered citation such as `[1]`, with every marker mapped one-to-one to a numbered entry in `References`. For competitor sources, list publisher, page title, and access date without a live URL after the cited references.
+- Keep external hyperlinks out of the body. Mark each material factual claim with a numbered citation such as `[1]`; every marker must resolve to exactly one numbered entry in `References`, and the same source number may support multiple claims. For competitor sources, list publisher, page title, and access date without a live URL after the cited references.
 - Paraphrase sources. Use short quotes only when the exact wording matters and attribution is clear.
 
 SEO is subordinate to usefulness. The editorial word target is not a Google ranking factor, no keyword density is required, and no snippet or AI citation can be guaranteed.
 
 ### 5. Package the deliverable
+
+Use the full package for new and refreshed articles. For approval-mode plans and audit-only requests, deliver only the requested artifact and begin with `Publish Readiness`.
 
 Use H2 headings for package labels and exactly one H1 for the article title. Use this order:
 
@@ -152,6 +154,7 @@ Use `--allow-extended` only when the user explicitly required additional coverag
 - article pattern name appears at the top
 - 10 or more useful keywords are listed
 - primary keyword appears in the first 100 words
+- primary keyword appears in at least three H1-H3 headings before the FAQs
 - meta title is under 60 characters
 - meta description is 150-160 characters and contains two distinct long-tail terms plus a CTA
 - CMS excerpt is 35-60 words, link-free, and different from the meta description
@@ -167,7 +170,7 @@ Use `--allow-extended` only when the user explicitly required additional coverag
 - each numbered citation maps to one used, authoritative reference and no numbered reference is left uncited
 - spelling, grammar, tone, and brand alignment pass
 
-The validator can detect structure, counts, heading keyword use, meta-description terms and CTA, image fields, citation mapping, duplicate FAQ targets, lengths, and unresolved placeholders. It cannot prove that a claim is supported; verify factual support against the claim ledger.
+The validator can detect structure, counts, readiness format, conditional table-of-contents use, heading keyword use, meta-description terms and CTA, CMS excerpt rules, image fields, citation mapping, duplicate FAQ targets, lengths, and unresolved placeholders. It cannot prove that a claim is supported; verify factual support against the claim ledger.
 
 Revise once to remove repetition, unsupported claims, padding, keyword stuffing, generic AI phrasing, and any promise the evidence cannot support. Deliver the article, not the checklist, unless the user asks for an audit trail.
 
@@ -188,4 +191,4 @@ Include a `Changes Made` table with `Area | Previous | Updated | Reason | Eviden
 
 Recommend performance checkpoints only when analytics or Search Console access exists. Label every reported performance metric as `Measured`, `User-provided`, `Calculated`, `Estimated`, or `Unknown`; state the source or calculation, and never invent expected gains.
 
-For a requested audit, report findings by severity and point to exact sections. Do not rewrite unless asked.
+For a requested audit, begin with `Publish Readiness`, report findings by severity, and point to exact sections. Do not rewrite unless asked.

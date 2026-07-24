@@ -114,7 +114,10 @@ def article_slice(text: str) -> str:
     if start is None:
         return ""
     end = len(lines)
-    stop = re.compile(r"^\s*#{1,6}\s+(?:Image Recommendations|References)\s*:?\s*$", re.IGNORECASE)
+    stop = re.compile(
+        r"^\s*#{1,6}\s+(?:Author Bio|Image Recommendations|References)\s*:?\s*$",
+        re.IGNORECASE,
+    )
     for index in range(start + 1, len(lines)):
         if stop.match(lines[index]):
             end = index
@@ -173,6 +176,12 @@ def validate(
         failures.append(f"Document contains {len(h1s)} H1 headings; expected exactly one")
 
     article = article_slice(text)
+    article_before_faq = re.split(
+        r"^\s*##\s+FAQs\s*:?\s*$",
+        article,
+        maxsplit=1,
+        flags=re.IGNORECASE | re.MULTILINE,
+    )[0]
     if article:
         words = WORD_RE.findall(article)
         maximum = 2500 if allow_extended else 2000
@@ -183,9 +192,10 @@ def validate(
                 f"Article length is {len(words)} words; expected 1,500-{maximum:,}"
             )
 
-        keyword = values["Primary Keyword"]
-        first_100 = " ".join(words[:100]).casefold()
-        if keyword and keyword.casefold() in first_100:
+        prose = re.sub(r"^\s*#{1,6}\s+.*$", "", article, flags=re.MULTILINE)
+        first_100 = normalize_heading(" ".join(WORD_RE.findall(prose)[:100]))
+        keyword = normalize_heading(values["Primary Keyword"])
+        if keyword and keyword in first_100:
             passed.append("Primary keyword appears in the first 100 words")
         elif keyword:
             failures.append("Primary keyword is absent from the first 100 words")
@@ -269,7 +279,11 @@ def validate(
     keyword = normalize_heading(values["Primary Keyword"])
     keyword_headings = [
         heading
-        for heading in re.findall(r"^\s*#{1,3}\s+(.+?)\s*$", article, re.MULTILINE)
+        for heading in re.findall(
+            r"^\s*#{1,3}\s+(.+?)\s*$",
+            article_before_faq,
+            re.MULTILINE,
+        )
         if keyword and keyword in normalize_heading(heading)
     ]
     if len(keyword_headings) >= 3:
@@ -309,12 +323,6 @@ def validate(
     elif questions:
         passed.append("FAQ question headings are unique")
 
-    article_before_faq = re.split(
-        r"^\s*##\s+FAQs\s*:?\s*$",
-        article,
-        maxsplit=1,
-        flags=re.IGNORECASE | re.MULTILINE,
-    )[0]
     article_targets = {
         normalize_heading(heading)
         for heading in re.findall(
@@ -402,14 +410,16 @@ def validate(
 
     readiness = values["Publish Readiness"]
     readiness_match = re.match(
-        r"^(blocked|draft|publish[- ]ready)\b",
+        r"^(blocked|draft|publish[- ]ready)\s*(?:—|–|-|:)\s*(\S.*)$",
         readiness,
         re.IGNORECASE,
     )
     if readiness and readiness_match:
         passed.append(f"Publish readiness is {readiness_match.group(1)}")
     elif readiness:
-        failures.append("Publish Readiness must be Blocked, Draft, or Publish-ready")
+        failures.append(
+            "Publish Readiness must be Blocked, Draft, or Publish-ready with a reason"
+        )
     if (
         readiness_match
         and readiness_match.group(1).casefold().replace(" ", "-") == "publish-ready"
@@ -431,6 +441,7 @@ def self_test() -> None:
         "with observations from a twelve-home field test so readers can identify "
         "waste and prioritize realistic improvements."
     )
+    author_bio = " ".join(["credentialed"] * 600)
     body = " ".join(["home energy audit checklist"] + ["useful"] * 1497) + " [1]"
     sample = f"""\
 ## Pattern Used
@@ -470,6 +481,8 @@ Answer.
 Answer.
 ### What should I inspect first?
 Answer.
+## Author Bio
+{author_bio}
 ## Image Recommendations
 - Placement: Cover | Concept: Home inspection overview | Filename: home-energy-audit-cover.webp | Alt text: Homeowner reviewing an energy audit checklist
 - Placement: Attic section | Concept: Insulation inspection | Filename: attic-insulation-check.webp | Alt text: Measuring attic insulation depth
@@ -509,9 +522,22 @@ Answer.
     ).replace(
         "### Home Energy Audit Checklist Setup",
         "### Preparation",
+    ).replace(
+        "### What is a home energy audit?",
+        "### What is a home energy audit checklist?",
+    ).replace(
+        "### How long does an audit take?",
+        "### Is the home energy audit checklist accurate?",
     )
     _, _, failures = validate(weak_headings)
     assert any("article headings" in failure for failure in failures)
+    no_intro_keyword = sample.replace(
+        body,
+        " ".join(["useful"] * 1498) + " [1]",
+        1,
+    )
+    _, _, failures = validate(no_intro_keyword)
+    assert any("first 100 words" in failure for failure in failures)
     weak_terms = (
         "Explore a practical inspection guide for homeowners who want a clearer "
         "view of household efficiency, common trouble spots, priorities, and "
@@ -541,6 +567,14 @@ Answer.
         sample.replace("Editorial How-To", "Pillar", 1)
     )
     assert any("Table of Contents is required" in failure for failure in failures)
+    _, _, failures = validate(
+        sample.replace(
+            "Publish-ready — validation and claim verification passed",
+            "Publish-ready",
+            1,
+        )
+    )
+    assert any("with a reason" in failure for failure in failures)
     print("PASS self-test")
 
 
