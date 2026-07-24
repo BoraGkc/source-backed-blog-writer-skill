@@ -14,10 +14,12 @@ The skill's operational patterns are original instructions written for this repo
 - [W3C WAI Images Tutorial](https://www.w3.org/WAI/tutorials/images/) — text alternatives based on an image's purpose and information.
 - [FTC endorsements, influencers, and reviews guidance](https://www.ftc.gov/business-guidance/advertising-marketing/endorsements-influencers-reviews) — truthful claims and clear disclosure of material relationships in relevant markets.
 
-## Skill packaging
+## Agent Skills packaging and clients
 
-- [Open Agent Skills specification](https://agentskills.io/specification) — portable skill directory and `SKILL.md` conventions.
-- [OpenAI Codex skill documentation](https://learn.chatgpt.com/docs/build-skills) — Codex discovery, invocation, metadata, and installation behavior.
+- [Agent Skills specification](https://agentskills.io/specification) — portable skill directory, frontmatter, resources, and validation conventions.
+- [OpenAI skill documentation](https://learn.chatgpt.com/docs/build-skills) — ChatGPT and Codex discovery, invocation, optional metadata, and installation behavior.
+- [Claude Code skills documentation](https://code.claude.com/docs/en/skills) — Claude Code discovery paths, automatic loading, and slash-command invocation.
+- [Anthropic Agent Skills overview](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview) — custom skill packaging and availability across Claude products and APIs.
 
 ## Rights and attribution
 

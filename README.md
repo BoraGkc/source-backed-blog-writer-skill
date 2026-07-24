@@ -1,6 +1,6 @@
 # Source-Backed Blog Writer
 
-An agent skill for researching, drafting, refreshing, and auditing complete SEO articles without inventing evidence. It combines search-intent research, duplicate-content checks, article-pattern selection, source discipline, editorial structure, metadata, internal-link opportunities, FAQs, and image recommendations.
+A portable Agent Skill for researching, drafting, refreshing, and auditing complete SEO articles without inventing evidence. It combines search-intent research, duplicate-content checks, article-pattern selection, source discipline, editorial structure, metadata, internal-link opportunities, FAQs, and image recommendations.
 
 ## What it does
 
@@ -24,44 +24,72 @@ The skill can infer low-risk details from the brief or website. It asks when a m
 
 For close voice matching, also provide the author's name, real credentials, desired first-person or institutional perspective, and one to three representative writing samples. Without supported firsthand evidence, the skill will not invent personal experience.
 
+## Compatibility
+
+The core skill follows the open [Agent Skills specification](https://agentskills.io/specification) and uses provider-neutral `SKILL.md`, `references/`, and `scripts/` conventions. It works with clients that implement Agent Skills, including Codex, ChatGPT skill surfaces, Claude Code, claude.ai custom skills, and the Claude API.
+
+Full research needs web/search access or current sources supplied by the user. The deterministic validator needs Python 3; the skill falls back to manual checks when shell execution is unavailable. `agents/openai.yaml` is optional OpenAI UI metadata and does not change the portable core.
+
 ## Install
 
-Ask Codex:
-
-```text
-Use $skill-installer to install:
-https://github.com/BoraGkc/source-backed-blog-writer-skill/tree/main/source-backed-blog-writer
-```
-
-Or install it manually:
+Clone the repository once:
 
 ```bash
 git clone https://github.com/BoraGkc/source-backed-blog-writer-skill.git
+```
+
+Install the `source-backed-blog-writer` directory in the location used by your client.
+
+### Codex
+
+```bash
 mkdir -p ~/.agents/skills
 cp -R source-backed-blog-writer-skill/source-backed-blog-writer ~/.agents/skills/
 ```
 
-Codex detects skill changes automatically. If the skill does not appear, restart Codex and invoke it as `$source-backed-blog-writer`.
+For a project-only installation, copy it to `.agents/skills/` in the repository. You can also ask `$skill-installer` to install the repository skill URL.
 
-To update, ask Codex:
+### Claude Code
 
-```text
-Update my installed skill from:
-https://github.com/BoraGkc/source-backed-blog-writer-skill/tree/main/source-backed-blog-writer
+```bash
+mkdir -p ~/.claude/skills
+cp -R source-backed-blog-writer-skill/source-backed-blog-writer ~/.claude/skills/
 ```
 
-Back up intentional local edits before updating because the installed files may be replaced.
+For a project-only installation, copy it to `.claude/skills/` in the repository.
+
+### ChatGPT, claude.ai, and APIs
+
+- In ChatGPT surfaces that support custom skills, add it through the Skills interface and select it with `@` when explicit invocation is needed.
+- In claude.ai, zip the contents of `source-backed-blog-writer/` with `SKILL.md` at the archive root, then upload it as a custom skill.
+- For the Claude API, upload the same skill bundle through the Skills API and attach the returned skill ID to the request.
+
+### Other Agent Skills clients
+
+Copy the complete skill directory into the client's configured personal or project skills location. Keep the directory name `source-backed-blog-writer`, matching the `name` in `SKILL.md`, and keep `references/` and `scripts/` with it. Provider-specific optional files may be ignored by clients that do not use them.
+
+Most clients can discover the skill automatically from its description. Explicit invocation varies:
+
+| Client | Explicit invocation |
+|---|---|
+| Codex CLI or IDE | `$source-backed-blog-writer` |
+| ChatGPT skill surfaces | Select with `@` |
+| Claude Code | `/source-backed-blog-writer` |
+| claude.ai or API | Select or attach the uploaded custom skill |
+| Other compatible clients | Use the client’s skill picker or name the skill in the prompt |
+
+To update, run `git pull --ff-only` in the cloned repository and replace the installed skill directory. Back up intentional local edits first.
 
 ## Example prompts
 
 ```text
-Use $source-backed-blog-writer to research and draft an article targeting
+Use the source-backed-blog-writer skill to research and draft an article targeting
 "home energy audit checklist" for example.com. The audience is US homeowners,
 the voice is practical, and our proprietary evidence is a 12-home field test.
 ```
 
 ```text
-Use $source-backed-blog-writer to plan a fair comparison of Product A and
+Use the source-backed-blog-writer skill to plan a fair comparison of Product A and
 Product B. Do not draft until you have checked for an existing competing page.
 Use approval mode and present title options, target questions, and the outline first.
 Use our founder's supplied bio and writing samples for the voice, and include
@@ -69,12 +97,12 @@ a methodology section that distinguishes tested from desk-researched claims.
 ```
 
 ```text
-Use $source-backed-blog-writer to refresh this article using current sources.
+Use the source-backed-blog-writer skill to refresh this article using current sources.
 Preserve useful original material and change only what is stale or unsupported.
 ```
 
 ```text
-Use $source-backed-blog-writer to audit this draft. Report issues by severity
+Use the source-backed-blog-writer skill to audit this draft. Report issues by severity
 and point to exact sections without rewriting it.
 ```
 
@@ -83,7 +111,7 @@ and point to exact sections without rewriting it.
 The skill runs its validator automatically when file and shell access are available. You can also run it directly:
 
 ```bash
-python3 ~/.agents/skills/source-backed-blog-writer/scripts/validate_article.py article.md
+python3 /path/to/source-backed-blog-writer/scripts/validate_article.py article.md
 ```
 
 The validator uses only the Python standard library. It checks mechanical requirements, exactly one H1, publish-readiness format, conditional table-of-contents use, heading keyword use before the FAQs, meta-description terms and CTA, CMS excerpt rules, image fields, numbered citation mapping, duplicate FAQs, and unresolved placeholders. Claim support still requires source review.
@@ -105,7 +133,7 @@ The validator uses only the Python standard library. It checks mechanical requir
 ├── SOURCES.md
 └── source-backed-blog-writer/
     ├── SKILL.md
-    ├── agents/openai.yaml
+    ├── agents/openai.yaml  # Optional OpenAI UI metadata
     ├── references/article-patterns.md
     └── scripts/validate_article.py
 ```
