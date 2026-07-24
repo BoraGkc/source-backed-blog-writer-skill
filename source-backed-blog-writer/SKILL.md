@@ -19,6 +19,7 @@ Identify:
 - proprietary evidence: firsthand experience, interview quote, internal data, test result, event observation, or another verifiable original fact
 - author identity and real credentials when the article uses a byline or first-person voice
 - one to three representative writing samples when close voice matching matters
+- delivery mode: one-shot by default, or approval mode when the user wants to review the research brief and outline before drafting
 
 Infer low-risk details from the brief or website. Ask only when a missing answer blocks correct research or would force fabrication.
 
@@ -63,6 +64,7 @@ Record internally:
 
 - duplicate check result
 - intent and reader job-to-be-done
+- three to five target questions the article must answer
 - top-three competitor coverage and shared pattern
 - at least one defensible content gap
 - selected article pattern and rationale
@@ -81,6 +83,8 @@ Make every H2 answer a distinct reader question or advance the decision/process.
 
 Use H3s only when they divide an H2 into meaningful subtopics. For steps and list items, give each major item its own heading. Add tables only when they make a real comparison easier to scan.
 
+In approval mode, stop here and deliver two or three H1/title options, the target questions, proposed outline, intended information gain, material claims and unresolved unknowns, CTA, and internal-link targets. Do not draft until the user approves or revises the plan.
+
 ### 4. Draft the article
 
 Write in clear, professional, approachable language. Use short paragraphs, varied but concise sentences, transitions, bullets, and numbered steps where they improve comprehension. Explain unavoidable jargon inline.
@@ -90,6 +94,7 @@ Meet all of these requirements:
 - Follow the exact assigned topic and chosen article pattern.
 - Use the primary keyword within the first 100 words and naturally in at least three headings when grammar permits.
 - Lead with 3-6 key-point bullets that answer the main question directly.
+- Make the first prose paragraph after Key Points a two- or three-sentence direct answer to the main target question, without throat-clearing.
 - Use specific names, dates, numbers, methods, and outcomes when supported.
 - Include at least one verified proprietary fact or the approved placeholder.
 - Cover at least one meaningful angle absent from the reviewed competitors.
@@ -98,7 +103,7 @@ Meet all of these requirements:
 - For Alternatives, Best-Of, and Comparison articles, publish a concise methodology section covering inclusion criteria, tested versus desk-researched products, consistent evaluation criteria, research and pricing dates, material relationships, limitations, and unknowns.
 - Keep the conclusion brief, reinforce the decision or takeaway, and introduce no new facts.
 - Use internal links with descriptive anchor text and verified URLs. If none are discoverable, add `[INTERNAL LINK NEEDED: suggested anchor -> target page type]` rather than inventing a URL.
-- Keep external hyperlinks out of the body. Cite sources with readable names or note markers, then put non-competing source URLs in `References`. For competitor sources, list publisher, page title, and access date without a live URL.
+- Keep external hyperlinks out of the body. Mark each material factual claim with a numbered citation such as `[1]`, with every marker mapped one-to-one to a numbered entry in `References`. For competitor sources, list publisher, page title, and access date without a live URL after the cited references.
 - Paraphrase sources. Use short quotes only when the exact wording matters and attribution is clear.
 
 SEO is subordinate to usefulness. The editorial word target is not a Google ranking factor, no keyword density is required, and no snippet or AI citation can be guaranteed.
@@ -121,8 +126,9 @@ Use H2 headings for package labels and exactly one H1 for the article title. Use
 12. Article body with H2/H3 hierarchy
 13. Brief conclusion
 14. `FAQs` with 3-7 real long-tail questions formatted as H3 headings and followed by 1-3 sentence answers; do not reuse an existing heading target
-15. `Image Recommendations`: one list item for the cover plus at least three for in-article images, each with placement, concept, descriptive filename, and useful alt text
-16. `References`: link non-competing authoritative sources; list competitor sources without live URLs
+15. `Author Bio` only when the user supplied the author's identity and verifiable credentials; otherwise omit it instead of adding a placeholder
+16. `Image Recommendations`: one list item for the cover plus at least three for in-article images, each with placement, concept, descriptive filename, and useful alt text
+17. `References`: number non-competing authoritative sources in order of first citation; then list competitor research sources without live URLs
 
 Do not add research-process commentary to the article unless requested. In the References section, include only sources actually used.
 
@@ -153,10 +159,10 @@ Use `--allow-extended` only when the user explicitly required additional coverag
 - internal links use verified URLs and descriptive anchors
 - FAQs do not duplicate article heading targets
 - cover plus at least three additional image recommendations include filenames and alt text
-- external references are authoritative, used, and non-competitive
+- each numbered citation maps to one used, authoritative reference and no numbered reference is left uncited
 - spelling, grammar, tone, and brand alignment pass
 
-The validator can detect structure, counts, lengths, and unresolved placeholders. It cannot prove that a claim is supported; verify factual support against the claim ledger.
+The validator can detect structure, counts, citation mapping, duplicate FAQ targets, lengths, and unresolved placeholders. It cannot prove that a claim is supported; verify factual support against the claim ledger.
 
 Revise once to remove repetition, unsupported claims, padding, keyword stuffing, generic AI phrasing, and any promise the evidence cannot support. Deliver the article, not the checklist, unless the user asks for an audit trail.
 
@@ -173,6 +179,8 @@ After a refresh, report:
 - recommended published-date or last-updated-date treatment
 - a suggested next review
 
-Recommend performance checkpoints only when analytics or Search Console access exists. Label unavailable metrics as unknown and never invent expected gains.
+Include a `Changes Made` table with `Area | Previous | Updated | Reason | Evidence` columns.
+
+Recommend performance checkpoints only when analytics or Search Console access exists. Label every reported performance metric as `Measured`, `User-provided`, `Calculated`, `Estimated`, or `Unknown`; state the source or calculation, and never invent expected gains.
 
 For a requested audit, report findings by severity and point to exact sections. Do not rewrite unless asked.

@@ -95,14 +95,30 @@ def article_slice(text: str) -> str:
     return "\n".join(lines[start:end]).strip()
 
 
-def faq_count(text: str) -> int:
+def normalize_heading(value: str) -> str:
+    return " ".join(re.findall(r"\w+", value.casefold(), re.UNICODE))
+
+
+def faq_questions(text: str) -> list[str]:
     block = section(text, "FAQs")
     if not block:
-        return 0
-    headings = re.findall(r"^\s*#{1,6}\s+.+\?\s*$", block, re.MULTILINE)
-    questions = re.findall(r"^\s*(?:[-*+]|\d+[.)])\s+(?:\*\*)?.+\?", block, re.MULTILINE)
-    bold = re.findall(r"^\s*\*\*(?:Q(?:uestion)?\s*\d*\s*[:.]?\s*)?.+\?\*\*", block, re.MULTILINE)
-    return len(headings) + len(questions) + len(bold)
+        return []
+    return re.findall(r"^\s*###\s+(.+\?)\s*$", block, re.MULTILINE)
+
+
+def citation_numbers(text: str) -> list[int]:
+    return [int(value) for value in re.findall(r"\[(\d+)\](?!\()", text)]
+
+
+def reference_numbers(text: str) -> list[int]:
+    return [
+        int(value)
+        for value in re.findall(
+            r"^\s*(\d+)[.)]\s+\S",
+            section(text, "References"),
+            re.MULTILINE,
+        )
+    ]
 
 
 def validate(
@@ -121,10 +137,16 @@ def validate(
     else:
         passed.append("Required metadata fields are present")
 
-    article = article_slice(text)
-    if not article:
+    h1s = re.findall(r"^#\s+(.+?)\s*$", text, re.MULTILINE)
+    if len(h1s) == 1:
+        passed.append("Document contains exactly one H1")
+    elif not h1s:
         failures.append("Missing H1 article title")
     else:
+        failures.append(f"Document contains {len(h1s)} H1 headings; expected exactly one")
+
+    article = article_slice(text)
+    if article:
         words = WORD_RE.findall(article)
         maximum = 2500 if allow_extended else 2000
         if 1500 <= len(words) <= maximum:
@@ -152,10 +174,9 @@ def validate(
             passed.append("Meta title contains the primary keyword")
         elif keyword:
             failures.append("Meta title does not contain the primary keyword")
-        h1 = re.search(r"^#\s+(.+?)\s*$", text, re.MULTILINE)
-        if h1 and h1.group(1).strip().casefold() != title.casefold():
+        if h1s and h1s[0].strip().casefold() != title.casefold():
             passed.append("Meta title differs from the H1")
-        elif h1:
+        elif h1s:
             failures.append("Meta title must differ from the H1")
 
     description = values["Meta Description"]
@@ -189,11 +210,46 @@ def validate(
     else:
         failures.append(f"Key Points contain {key_point_count} items; expected 3-6")
 
-    faqs = faq_count(text)
-    if 3 <= faqs <= 7:
-        passed.append(f"FAQs contain {faqs} questions")
+    questions = faq_questions(text)
+    if 3 <= len(questions) <= 7:
+        passed.append(f"FAQs contain {len(questions)} H3 questions")
     else:
-        failures.append(f"FAQs contain {faqs} questions; expected 3-7")
+        failures.append(
+            f"FAQs contain {len(questions)} H3 questions; expected 3-7"
+        )
+
+    normalized_questions = [normalize_heading(question) for question in questions]
+    duplicate_questions = sorted(
+        {
+            question
+            for question in normalized_questions
+            if normalized_questions.count(question) > 1
+        }
+    )
+    if duplicate_questions:
+        failures.append("FAQs contain duplicate question headings")
+    elif questions:
+        passed.append("FAQ question headings are unique")
+
+    article_before_faq = re.split(
+        r"^\s*##\s+FAQs\s*:?\s*$",
+        article,
+        maxsplit=1,
+        flags=re.IGNORECASE | re.MULTILINE,
+    )[0]
+    article_targets = {
+        normalize_heading(heading)
+        for heading in re.findall(
+            r"^\s*#{2,3}\s+(.+?)\s*$",
+            article_before_faq,
+            re.MULTILINE,
+        )
+    }
+    reused_questions = sorted(set(normalized_questions) & article_targets)
+    if reused_questions:
+        failures.append("FAQ question headings duplicate article heading targets")
+    elif questions:
+        passed.append("FAQ questions do not duplicate article heading targets")
 
     images = list_count(section(text, "Image Recommendations"))
     if images >= 4:
@@ -206,6 +262,21 @@ def validate(
         passed.append("References section is present")
     else:
         failures.append("References section is missing or empty")
+
+    citations = citation_numbers(article)
+    numbered_references = reference_numbers(text)
+    unique_citations = list(dict.fromkeys(citations))
+    expected = list(range(1, len(unique_citations) + 1))
+    if not citations:
+        failures.append("Article contains no numbered citations")
+    elif unique_citations != expected:
+        failures.append("Numbered citations must begin at [1] and follow first-use order")
+    elif numbered_references != expected:
+        failures.append("Numbered references must map exactly to cited markers")
+    else:
+        passed.append(
+            f"{len(unique_citations)} numbered citation(s) map to References"
+        )
 
     placeholders = PLACEHOLDER_RE.findall(text)
     if placeholders:
@@ -222,7 +293,7 @@ def self_test() -> None:
         "Use this home energy audit checklist and practical energy-saving tips "
         "to inspect every room, reduce waste, and start improving your home today."
     ).ljust(150, ".")
-    body = " ".join(["home energy audit checklist"] + ["useful"] * 1497)
+    body = " ".join(["home energy audit checklist"] + ["useful"] * 1497) + " [1]"
     sample = f"""\
 ## Pattern Used
 Editorial How-To
@@ -261,7 +332,7 @@ Answer.
 - Window: filename and alt text
 - Meter: filename and alt text
 ## References
-- [Public source](https://example.com/source)
+1. [Public source](https://example.com/source)
 """
     passed, warnings, failures = validate(sample)
     assert passed and not warnings and not failures, failures
@@ -274,6 +345,16 @@ Answer.
     extended = sample.replace(body, body + " " + " ".join(["extended"] * 600))
     assert validate(extended)[2]
     assert not validate(extended, allow_extended=True)[2]
+    _, _, failures = validate(sample.replace("## FAQs", "# Extra title\n## FAQs"))
+    assert any("exactly one" in failure for failure in failures)
+    duplicate_faq = sample.replace(
+        "### What should I inspect first?",
+        "### What is a home energy audit?",
+    )
+    _, _, failures = validate(duplicate_faq)
+    assert any("duplicate question" in failure for failure in failures)
+    _, _, failures = validate(sample.replace("[1]", "[2]", 1))
+    assert any("citations" in failure or "references" in failure for failure in failures)
     print("PASS self-test")
 
 

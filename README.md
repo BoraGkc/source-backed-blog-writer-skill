@@ -7,10 +7,12 @@ An agent skill for researching, drafting, refreshing, and auditing complete SEO 
 - Researches the publishing site and the three most relevant organic articles.
 - Identifies search intent, useful related terms, verified internal links, and a defensible content gap.
 - Selects an editorial or commercial article pattern that matches the reader's job.
+- Supports an optional approval mode that presents title options, target questions, claims, and the outline before drafting.
 - Produces a sourced 1,500–2,000-word article with metadata and image recommendations.
 - Stops when proprietary evidence is missing instead of fabricating experience, quotes, data, or results.
-- Tracks material claims by source type and verification date.
-- Validates article structure, counts, metadata, and unresolved placeholders with a dependency-free script.
+- Tracks material claims by source type and verification date, then maps factual claims to numbered references.
+- Includes an author bio only when real identity and credentials are supplied.
+- Validates article structure, citation mapping, counts, metadata, duplicate FAQs, and unresolved placeholders with a dependency-free script.
 - Refreshes existing articles selectively, reports what changed, and audits without rewriting unless asked.
 
 ## Required inputs
@@ -60,6 +62,7 @@ the voice is practical, and our proprietary evidence is a 12-home field test.
 ```text
 Use $source-backed-blog-writer to plan a fair comparison of Product A and
 Product B. Do not draft until you have checked for an existing competing page.
+Use approval mode and present title options, target questions, and the outline first.
 Use our founder's supplied bio and writing samples for the voice, and include
 a methodology section that distinguishes tested from desk-researched claims.
 ```
@@ -82,7 +85,7 @@ The skill runs its validator automatically when file and shell access are availa
 python3 ~/.agents/skills/source-backed-blog-writer/scripts/validate_article.py article.md
 ```
 
-The validator uses only the Python standard library. It checks mechanical requirements and unresolved placeholders; claim support still requires source review.
+The validator uses only the Python standard library. It checks mechanical requirements, exactly one H1, numbered citation mapping, duplicate FAQs, and unresolved placeholders; claim support still requires source review.
 
 ## Limitations
 
