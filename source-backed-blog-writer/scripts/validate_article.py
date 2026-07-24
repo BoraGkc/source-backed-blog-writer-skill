@@ -16,15 +16,30 @@ FIELDS = (
     "Related Keywords",
     "Competitor Gap Covered",
     "Proprietary Evidence Used",
+    "Publish Readiness",
     "Slug",
     "Meta Title",
     "Meta Description",
+    "CMS Excerpt",
 )
 PLACEHOLDER_RE = re.compile(
     r"\[(?:VERIFY|SOURCE NEEDED|NEEDS SOURCE|UNVERIFIED|PROPRIETARY INPUT NEEDED|INTERNAL LINK NEEDED)(?::[^\]]*)?\]",
     re.IGNORECASE,
 )
 WORD_RE = re.compile(r"\b[\w][\w’'-]*\b", re.UNICODE)
+# ponytail: common imperative verbs cover the current CTA contract; expand only
+# if real drafts expose false negatives.
+CTA_RE = re.compile(
+    r"(?:^|[.!?]\s+)(?:use|learn|discover|compare|find|see|read|get|explore|start|choose|check)\b",
+    re.IGNORECASE,
+)
+IMAGE_RE = re.compile(
+    r"^\s*[-*+]\s+Placement:\s*([^|\n]+?)\s*\|\s*"
+    r"Concept:\s*([^|\n]+?)\s*\|\s*"
+    r"Filename:\s*([^|\s]+\.(?:avif|gif|jpe?g|png|svg|webp))\s*\|\s*"
+    r"Alt text:\s*(\S.+?)\s*$",
+    re.IGNORECASE | re.MULTILINE,
+)
 
 
 def heading_pattern(name: str) -> re.Pattern[str]:
@@ -43,10 +58,14 @@ def field_value(text: str, name: str) -> str:
         if match:
             return match.group(1).strip().strip("`")
         if heading.match(line):
+            body: list[str] = []
             for candidate in lines[index + 1 :]:
+                if re.match(r"^\s*#{1,6}\s+", candidate):
+                    break
                 candidate = candidate.strip()
                 if candidate:
-                    return candidate.strip("*` ")
+                    body.append(candidate.strip("*` "))
+            return " ".join(body)
     return ""
 
 
@@ -71,11 +90,19 @@ def section(text: str, name: str) -> str:
     return ""
 
 
-def list_count(value: str) -> int:
-    bullets = re.findall(r"^\s*(?:[-*+]|\d+[.)])\s+\S", value, re.MULTILINE)
+def list_items(value: str) -> list[str]:
+    bullets = re.findall(
+        r"^\s*(?:[-*+]|\d+[.)])\s+(.+?)\s*$",
+        value,
+        re.MULTILINE,
+    )
     if bullets:
-        return len(bullets)
-    return len([item for item in re.split(r"[,;\n]", value) if item.strip()])
+        return bullets
+    return [item.strip() for item in re.split(r"[,;\n]", value) if item.strip()]
+
+
+def list_count(value: str) -> int:
+    return len(list_items(value))
 
 
 def article_slice(text: str) -> str:
@@ -188,6 +215,42 @@ def validate(
                 f"Meta description is {len(description)} characters; expected 150-160"
             )
 
+        related = section(text, "Related Keywords") or values["Related Keywords"]
+        description_text = normalize_heading(description)
+        long_tail_matches = {
+            normalized
+            for term in list_items(related)
+            if len(WORD_RE.findall(term)) >= 2
+            and (normalized := normalize_heading(term)) in description_text
+        }
+        if len(long_tail_matches) >= 2:
+            passed.append("Meta description contains two related long-tail terms")
+        else:
+            failures.append(
+                "Meta description contains fewer than two related long-tail terms"
+            )
+
+        if CTA_RE.search(description):
+            passed.append("Meta description contains a CTA")
+        else:
+            failures.append("Meta description does not contain a recognized CTA")
+
+    excerpt = values["CMS Excerpt"]
+    if excerpt:
+        excerpt_words = len(WORD_RE.findall(excerpt))
+        if 35 <= excerpt_words <= 60:
+            passed.append(f"CMS excerpt is {excerpt_words} words")
+        else:
+            failures.append(
+                f"CMS excerpt is {excerpt_words} words; expected 35-60"
+            )
+        if excerpt.casefold() == description.casefold():
+            failures.append("CMS excerpt must differ from the meta description")
+        elif re.search(r"https?://|\[[^\]]+\]\([^)]+\)", excerpt):
+            failures.append("CMS excerpt must not contain links")
+        else:
+            passed.append("CMS excerpt is link-free and differs from the meta description")
+
     slug = values["Slug"]
     if slug:
         slug_words = [word for word in re.split(r"[-_/]+", slug.strip("/")) if word]
@@ -202,6 +265,21 @@ def validate(
         passed.append(f"Related keywords contain {related_count} terms")
     else:
         failures.append(f"Related keywords contain {related_count} terms; expected at least 10")
+
+    keyword = normalize_heading(values["Primary Keyword"])
+    keyword_headings = [
+        heading
+        for heading in re.findall(r"^\s*#{1,3}\s+(.+?)\s*$", article, re.MULTILINE)
+        if keyword and keyword in normalize_heading(heading)
+    ]
+    if len(keyword_headings) >= 3:
+        passed.append(
+            f"Primary keyword appears in {len(keyword_headings)} article headings"
+        )
+    elif keyword:
+        failures.append(
+            f"Primary keyword appears in {len(keyword_headings)} article headings; expected at least 3"
+        )
 
     key_points = section(text, "Key Points")
     key_point_count = list_count(key_points)
@@ -251,11 +329,48 @@ def validate(
     elif questions:
         passed.append("FAQ questions do not duplicate article heading targets")
 
-    images = list_count(section(text, "Image Recommendations"))
-    if images >= 4:
-        passed.append(f"Image Recommendations contain {images} items")
+    body_h2s = [
+        normalize_heading(heading)
+        for heading in re.findall(
+            r"^\s*##\s+(.+?)\s*$",
+            article_before_faq,
+            re.MULTILINE,
+        )
+        if normalize_heading(heading) not in {"key points", "table of contents"}
+    ]
+    toc_required = (
+        "pillar" in values["Pattern Used"].casefold() or len(body_h2s) >= 5
+    )
+    toc = section(text, "Table of Contents")
+    if toc_required and toc:
+        passed.append("Required Table of Contents is present")
+    elif toc_required:
+        failures.append(
+            "Table of Contents is required for Pillar articles or 5+ body H2 sections"
+        )
+    elif toc:
+        failures.append("Table of Contents should be omitted for this article")
     else:
-        failures.append(f"Image Recommendations contain {images} items; expected at least 4")
+        passed.append("Table of Contents is correctly omitted")
+
+    image_block = section(text, "Image Recommendations")
+    image_items = list_items(image_block)
+    image_details = IMAGE_RE.findall(image_block)
+    if len(image_items) >= 4 and len(image_details) == len(image_items):
+        passed.append(
+            f"Image Recommendations contain {len(image_items)} fully specified items"
+        )
+    else:
+        failures.append(
+            "Image Recommendations require at least 4 items with placement, "
+            "concept, filename, and alt text"
+        )
+    if image_details and any(
+        "cover" in placement.casefold() for placement, _, _, _ in image_details
+    ):
+        passed.append("Image Recommendations include a cover image")
+    else:
+        failures.append("Image Recommendations do not include a cover placement")
 
     references = section(text, "References")
     if references:
@@ -285,6 +400,23 @@ def validate(
     else:
         passed.append("No unresolved placeholders found")
 
+    readiness = values["Publish Readiness"]
+    readiness_match = re.match(
+        r"^(blocked|draft|publish[- ]ready)\b",
+        readiness,
+        re.IGNORECASE,
+    )
+    if readiness and readiness_match:
+        passed.append(f"Publish readiness is {readiness_match.group(1)}")
+    elif readiness:
+        failures.append("Publish Readiness must be Blocked, Draft, or Publish-ready")
+    if (
+        readiness_match
+        and readiness_match.group(1).casefold().replace(" ", "-") == "publish-ready"
+        and (failures or warnings)
+    ):
+        failures.append("Publish-ready status conflicts with validation issues")
+
     return passed, warnings, failures
 
 
@@ -293,6 +425,12 @@ def self_test() -> None:
         "Use this home energy audit checklist and practical energy-saving tips "
         "to inspect every room, reduce waste, and start improving your home today."
     ).ljust(150, ".")
+    cms_excerpt = (
+        "This room-by-room guide explains how homeowners can inspect insulation, "
+        "windows, appliances, and energy use.\nIt combines a practical checklist "
+        "with observations from a twelve-home field test so readers can identify "
+        "waste and prioritize realistic improvements."
+    )
     body = " ".join(["home energy audit checklist"] + ["useful"] * 1497) + " [1]"
     sample = f"""\
 ## Pattern Used
@@ -302,22 +440,28 @@ Informational
 ## Primary Keyword
 home energy audit checklist
 ## Related Keywords
-one, two, three, four, five, six, seven, eight, nine, ten
+home energy audit checklist, practical energy saving tips, room by room home audit, diy energy inspection, reduce home energy waste, attic insulation check, window draft inspection, appliance energy use, homeowner audit steps, lower utility bills
 ## Competitor Gap Covered
 Measured room-by-room observations
 ## Proprietary Evidence Used
 User-provided 12-home field test
+## Publish Readiness
+Publish-ready — validation and claim verification passed
 ## Slug
 home-energy-audit-checklist
 ## Meta Title
 Home Energy Audit Checklist
 ## Meta Description
 {meta_description[:160]}
+## CMS Excerpt
+{cms_excerpt}
 # A Practical Home Energy Audit Checklist for Every Room
 ## Key Points
 - First
 - Second
 - Third
+## Home Energy Audit Checklist Steps
+### Home Energy Audit Checklist Setup
 {body}
 ## FAQs
 ### What is a home energy audit?
@@ -327,10 +471,10 @@ Answer.
 ### What should I inspect first?
 Answer.
 ## Image Recommendations
-- Cover: filename and alt text
-- Attic: filename and alt text
-- Window: filename and alt text
-- Meter: filename and alt text
+- Placement: Cover | Concept: Home inspection overview | Filename: home-energy-audit-cover.webp | Alt text: Homeowner reviewing an energy audit checklist
+- Placement: Attic section | Concept: Insulation inspection | Filename: attic-insulation-check.webp | Alt text: Measuring attic insulation depth
+- Placement: Window section | Concept: Draft detection | Filename: window-draft-inspection.webp | Alt text: Checking a window frame for air leaks
+- Placement: Appliance section | Concept: Meter reading | Filename: appliance-energy-meter.webp | Alt text: Energy meter connected to a household appliance
 ## References
 1. [Public source](https://example.com/source)
 """
@@ -340,7 +484,11 @@ Answer.
     assert any("Meta title" in failure for failure in failures)
     _, _, failures = validate(sample + "\n[VERIFY: claim]\n")
     assert any("placeholder" in failure for failure in failures)
-    _, warnings, failures = validate(sample + "\n[VERIFY: claim]\n", allow_placeholders=True)
+    draft = sample.replace(
+        "Publish-ready — validation and claim verification passed",
+        "Draft — approved verification placeholder remains",
+    )
+    _, warnings, failures = validate(draft + "\n[VERIFY: claim]\n", allow_placeholders=True)
     assert warnings and not failures
     extended = sample.replace(body, body + " " + " ".join(["extended"] * 600))
     assert validate(extended)[2]
@@ -355,6 +503,44 @@ Answer.
     assert any("duplicate question" in failure for failure in failures)
     _, _, failures = validate(sample.replace("[1]", "[2]", 1))
     assert any("citations" in failure or "references" in failure for failure in failures)
+    weak_headings = sample.replace(
+        "## Home Energy Audit Checklist Steps",
+        "## Inspection Steps",
+    ).replace(
+        "### Home Energy Audit Checklist Setup",
+        "### Preparation",
+    )
+    _, _, failures = validate(weak_headings)
+    assert any("article headings" in failure for failure in failures)
+    weak_terms = (
+        "Explore a practical inspection guide for homeowners who want a clearer "
+        "view of household efficiency, common trouble spots, priorities, and "
+        "realistic improvements they can make today."
+    ).ljust(150, ".")
+    _, _, failures = validate(
+        sample.replace(meta_description[:160], weak_terms[:160], 1)
+    )
+    assert any("long-tail terms" in failure for failure in failures)
+    no_cta = (
+        "This home energy audit checklist and practical energy-saving tips cover "
+        "every room, common sources of waste, inspection priorities, and realistic "
+        "home improvements."
+    ).ljust(150, ".")
+    _, _, failures = validate(
+        sample.replace(meta_description[:160], no_cta[:160], 1)
+    )
+    assert any("recognized CTA" in failure for failure in failures)
+    malformed_image = sample.replace(
+        "Filename: attic-insulation-check.webp",
+        "File: attic-insulation-check.webp",
+        1,
+    )
+    _, _, failures = validate(malformed_image)
+    assert any("Image Recommendations require" in failure for failure in failures)
+    _, _, failures = validate(
+        sample.replace("Editorial How-To", "Pillar", 1)
+    )
+    assert any("Table of Contents is required" in failure for failure in failures)
     print("PASS self-test")
 
 

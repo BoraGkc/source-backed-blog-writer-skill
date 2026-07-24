@@ -118,17 +118,20 @@ Use H2 headings for package labels and exactly one H1 for the article title. Use
 4. `Related Keywords` with at least 10 comma-separated terms or list items
 5. `Competitor Gap Covered`
 6. `Proprietary Evidence Used`
-7. `Slug` with at most five words and the primary keyword when natural
-8. `Meta Title` under 60 characters, containing the primary keyword, and different from the H1
-9. `Meta Description` of 150-160 characters, containing two distinct long-tail terms and a CTA
-10. H1 article title
-11. `Key Points` with 3-6 bullets
-12. Article body with H2/H3 hierarchy
-13. Brief conclusion
-14. `FAQs` with 3-7 real long-tail questions formatted as H3 headings and followed by 1-3 sentence answers; do not reuse an existing heading target
-15. `Author Bio` only when the user supplied the author's identity and verifiable credentials; otherwise omit it instead of adding a placeholder
-16. `Image Recommendations`: one list item for the cover plus at least three for in-article images, each with placement, concept, descriptive filename, and useful alt text
-17. `References`: number non-competing authoritative sources in order of first citation; then list competitor research sources without live URLs
+7. `Publish Readiness`: `Blocked — reason` for missing evidence or unresolved material claims; `Draft — reason` for approved placeholders or pending required review; or `Publish-ready — reason` only after mechanical validation and claim verification pass
+8. `Slug` with at most five words and the primary keyword when natural
+9. `Meta Title` under 60 characters, containing the primary keyword, and different from the H1
+10. `Meta Description` of 150-160 characters, containing two distinct long-tail terms from `Related Keywords` and a CTA
+11. `CMS Excerpt`: a standalone 35-60-word summary, different from the meta description and without links
+12. H1 article title
+13. `Key Points` with 3-6 bullets
+14. `Table of Contents` with anchor links only for Pillar articles or articles with five or more reader-facing body H2 sections; otherwise omit it
+15. Article body with H2/H3 hierarchy
+16. Brief conclusion
+17. `FAQs` with 3-7 real long-tail questions formatted as H3 headings and followed by 1-3 sentence answers; do not reuse an existing heading target
+18. `Author Bio` only when the user supplied the author's identity and verifiable credentials; otherwise omit it instead of adding a placeholder
+19. `Image Recommendations`: one line each for the cover plus at least three in-article images, formatted `- Placement: ... | Concept: ... | Filename: descriptive-name.webp | Alt text: ...`
+20. `References`: number non-competing authoritative sources in order of first citation; then list competitor research sources without live URLs
 
 Do not add research-process commentary to the article unless requested. In the References section, include only sources actually used.
 
@@ -151,18 +154,20 @@ Use `--allow-extended` only when the user explicitly required additional coverag
 - primary keyword appears in the first 100 words
 - meta title is under 60 characters
 - meta description is 150-160 characters and contains two distinct long-tail terms plus a CTA
+- CMS excerpt is 35-60 words, link-free, and different from the meta description
 - slug has no more than five words
+- publish-readiness status matches the remaining evidence and review state
 - each section adds new information and begins answer-first
 - proprietary evidence is present, attributed, and not fabricated
 - competitor gap is genuinely covered
 - claims with numbers, dates, names, or outcomes have support
 - internal links use verified URLs and descriptive anchors
 - FAQs do not duplicate article heading targets
-- cover plus at least three additional image recommendations include filenames and alt text
+- cover plus at least three additional image recommendations use the required placement, concept, filename, and alt-text format
 - each numbered citation maps to one used, authoritative reference and no numbered reference is left uncited
 - spelling, grammar, tone, and brand alignment pass
 
-The validator can detect structure, counts, citation mapping, duplicate FAQ targets, lengths, and unresolved placeholders. It cannot prove that a claim is supported; verify factual support against the claim ledger.
+The validator can detect structure, counts, heading keyword use, meta-description terms and CTA, image fields, citation mapping, duplicate FAQ targets, lengths, and unresolved placeholders. It cannot prove that a claim is supported; verify factual support against the claim ledger.
 
 Revise once to remove repetition, unsupported claims, padding, keyword stuffing, generic AI phrasing, and any promise the evidence cannot support. Deliver the article, not the checklist, unless the user asks for an audit trail.
 
